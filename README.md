@@ -4,7 +4,7 @@ Stend est un projet visant à être l'une des meilleures solutions pour configur
 
 Ce repo GitHub contient le code source du client pour terminal de Stend, permettant de télécharger ou d'envoyer des fichiers sur une instance de Stend.
 
-> Pour plus d'informations sur ce client, vous pouvez lire [la page de la documentation dédiée](https://stend-docs.johanstick.me/web-docs/selfhost).
+> Pour plus d'informations sur Stend, vous pouvez lire [la documentation dédiée](https://stend-docs.johanstick.me).
 
 ## Prérequis
 
@@ -34,10 +34,10 @@ Vous pouvez modifier certains paramètres du client Stend pour terminal grâce a
 | `STEND_SILENT_OUTPUT`                | Désactive l'affichage de certains textes dans le terminal, ou l'affiche au format JSON     | N'importe                     |
 | `STEND_DISABLE_NOTIFICATIONS`        | Désactive les notifications système lors du téléchargement ou de l'envoi d'un fichier      | N'importe                     |
 | `STEND_DEFAULT_DOWNLOAD_PATH`        | Modifie le chemin par défaut utilisé pour enregistrer un fichier                           | Chemin d'un dossier           |
-| `STEND_ON_CONFLICT`                  | Action à effectuer automatiquement lorsqu'on télécharge un fichier déjà existant (`rename` ne fonctionne pas en mode silencieux)  | `replace`, `rename`, `ignore` |
-| `STEND_DISABLE_AUTO_WRITE_CLIPBOARD` | Désactive la copie du lien de partage dans le presse-papier lors d'un envoi                | N'importe                     |
+| `STEND_ON_CONFLICT`                  | Action à effectuer automatiquement lorsqu'on télécharge un fichier déjà existant (`rename` ne fonctionne pas si les prompts sont désactivés)  | `replace`, `rename`, `ignore` |
 | `STEND_DISABLE_PROMPT`               | Empêche l'affichage de prompt (= quand le CLI propose un choix à remplir avec le clavier)  | N'importe                     |
-| `STEND_DISABLE_SPINNERS`             | Empêche l'affichage de barre de progression dans le terminal                               | N'importe                     |
+| `STEND_DISABLE_AUTO_WRITE_CLIPBOARD` | Désactive la copie du lien de partage dans le presse-papier lors d'un envoi                | N'importe                     |
+| `STEND_DISABLE_SPINNERS`             | Empêche l'affichage de barre de progression dans le terminal, et désactive les couleurs pour les textes                        | N'importe                     |
 | `STEND_DISABLE_HISTORY`              | Désactive l'ajout des fichiers envoyés dans l'historique de transferts                     | N'importe                     |
 | `STEND_DEFAULT_EXPIRE`               | Durée par défaut avant qu'un transfert n'expire, --expire passe en priorité                | Nombre                        |
 
