@@ -1,0 +1,39 @@
+{
+	"name": "stend-cli",
+	"version": "1.0.0",
+	"description": "Télécharger et envoyer des fichiers via Stend depuis un terminal",
+	"main": "index.js",
+	"bin": {
+		"stend": "index.js",
+		"std": "index.js",
+		"stend-config": "config.js"
+	},
+	"keywords": [
+		"file",
+		"file-upload",
+		"terminal",
+		"tui",
+		"cli"
+	],
+	"author": "JohanStickman",
+	"license": "MIT",
+	"dependencies": {
+		"axios": "^1.4.0",
+		"boxen": "5.0.1",
+		"chalk": "^4.1.2",
+		"cli-progress": "^3.12.0",
+		"cli-table3": "^0.6.3",
+		"clipboardy": "^2.3.0",
+		"extract-zip": "^2.0.1",
+		"form-data": "^4.0.0",
+		"inquirer": "^8.2.0",
+		"node-notifier": "10.0.0",
+		"nodejs-file-downloader": "^4.12.1",
+		"simple-json-db": "^2.0.0",
+		"update-notifier": "5.1.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/johan-perso/stend-cli.git"
+	}
+}
