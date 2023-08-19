@@ -6,6 +6,8 @@ Ce repo GitHub contient le code source du client pour terminal de Stend, permett
 
 > Pour plus d'informations sur Stend, vous pouvez lire [la documentation dédiée](https://stend-docs.johanstick.me).
 
+https://github.com/johan-perso/stend-cli/assets/41506568/1b2a24ce-35fb-4b8a-b8e2-1a999e754837
+
 ## Prérequis
 
 * [nodejs v15+ et npm](https://nodejs.org/en/) installé sur votre système.
