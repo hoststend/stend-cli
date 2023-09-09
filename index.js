@@ -19,7 +19,7 @@ var instance
 /* =========== */
 var platform
 var homedir
-var apiSupportedVersion = [11, 12] // v1.1.0 par exemple --> 11
+var apiSupportedVersion = [11, 12, 13] // v1.1.0 par exemple --> 11
 
 // Parser les arguments (HAHAHA j'me rends compte le code est horrible eh c'est la faute à copilot)
 	// Variable qui contient les arguments par défaut, et ceux parsés
@@ -147,7 +147,7 @@ function showVersion(){
 		console.log("Stend CLI utilise actuellement la version " + chalk.cyan(require('./package.json').version))
 		console.log("────────────────────────────────────────────")
 		console.log("Développé par Johan le stickman")
-		console.log(chalk.cyan("https://johanstick.me"))
+		console.log(chalk.cyan("https://johanstick.fr"))
 	} else console.log(require('./package.json').version)
 	process.exit()
 }
