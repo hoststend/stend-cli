@@ -1,6 +1,6 @@
 {
 	"name": "stend-cli",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Télécharger et envoyer des fichiers via Stend depuis un terminal",
 	"main": "index.js",
 	"bin": {
