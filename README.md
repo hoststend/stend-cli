@@ -4,7 +4,7 @@ Stend est un projet visant à être l'une des meilleures solutions pour configur
 
 Ce repo GitHub contient le code source du client pour terminal de Stend, permettant de télécharger ou d'envoyer des fichiers sur une instance de Stend.
 
-> Pour plus d'informations sur Stend, vous pouvez lire [la documentation dédiée](https://stend-docs.johanstick.me).
+> Pour plus d'informations sur Stend, vous pouvez lire [la documentation dédiée](https://stend-docs.johanstick.fr).
 
 https://github.com/johan-perso/stend-cli/assets/41506568/1b2a24ce-35fb-4b8a-b8e2-1a999e754837
 
@@ -54,4 +54,4 @@ Vous pouvez modifier certains paramètres du client Stend pour terminal grâce a
 
 ## Licence
 
-MIT © [Johan](https://johanstick.me)
+MIT © [Johan](https://johanstick.fr)
