@@ -19,7 +19,6 @@ var instance
 /* =========== */
 var platform
 var homedir
-var apiSupportedVersion = [11, 12, 13] // v1.1.0 par exemple --> 11
 
 // Parser les arguments (HAHAHA j'me rends compte le code est horrible eh c'est la faute à copilot)
 	// Variable qui contient les arguments par défaut, et ceux parsés
@@ -608,13 +607,6 @@ async function upload(files){
 	if(instanceInfo.message || instanceInfo.error || instanceInfo.statusCode){
 		console.error(chalk.red((instanceInfo.message || instanceInfo.error || instanceInfo.statusCode) + '.'))
 		process.exit(1)
-	}
-
-	// Vérifier la version de l'instance (ce que retourne l'api ressemble à "1.1.0")
-	var apiVersion = parseInt(`${instanceInfo.apiVersion.split('.')[0]}${instanceInfo.apiVersion.split('.')[1]}`)
-	if(!apiSupportedVersion.includes(apiVersion)){
-		console.warn(chalk.yellow("⚠ ") + `La version de l'API de l'instance et celle de votre CLI sont différentes. Des problèmes de compatibilité peuvent survenir.`)
-		// Note: oui cette fois on affiche même en mode silencieux, car c'est important
 	}
 
 	// Si on doit indiquer un mot de passe
