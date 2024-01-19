@@ -573,12 +573,6 @@ async function upload(files){
 	// Enlever les fichiers en double
 	files = [...new Set(files)]
 
-	// Maximum 10 fichiers
-	if(files.length > 10){
-		console.error(chalk.red("Vous ne pouvez pas envoyer plus de 10 fichiers à la fois."))
-		process.exit(1)
-	}
-
 	// Initialiser la base de données (pour la configuration)
 	if(!JSONdb) JSONdb = require('simple-json-db')
 	if(!config) config = new JSONdb(getConfigPath(true))
@@ -606,6 +600,12 @@ async function upload(files){
 	var instanceInfo = await instance.get(`${apiBaseLink}/instance`).then(res => res.data).catch(err => { return { message: err } })
 	if(instanceInfo.message || instanceInfo.error || instanceInfo.statusCode){
 		console.error(chalk.red((instanceInfo.message || instanceInfo.error || instanceInfo.statusCode) + '.'))
+		process.exit(1)
+	}
+
+	// Nombre maximum de fichiers
+	if(files.length > (instanceInfo.maxTransfersInMerge || 10)){
+		console.error(chalk.red(`Vous ne pouvez pas envoyer plus de ${instanceInfo.maxTransfersInMerge || 10} fichiers à la fois.`))
 		process.exit(1)
 	}
 
