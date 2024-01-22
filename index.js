@@ -277,7 +277,10 @@ async function showTransfertInfo(key){
 	if(!axios) axios = require('axios')
 	if(!instance) instance = axios.create({
 		baseURL: apiBaseLink,
-		timeout: 1000 * 30,
+		timeout: 1000 * 90,
+		headers: {
+			'User-Agent': 'Stend CLI/' + require('./package.json').version
+		},
 		validateStatus: (status) => {
 			return status >= 200 && status < 500
 		}
@@ -371,7 +374,10 @@ async function downloadFile(key, wherePath){
 	if(!axios) axios = require('axios')
 	if(!instance) instance = axios.create({
 		baseURL: apiBaseLink,
-		timeout: 1000 * 30,
+		timeout: 1000 * 90,
+		headers: {
+			'User-Agent': 'Stend CLI/' + require('./package.json').version
+		},
 		validateStatus: (status) => {
 		  return status >= 200 && status < 500
 		}
@@ -590,7 +596,10 @@ async function upload(files){
 	if(!axios) axios = require('axios')
 	if(!instance) instance = axios.create({
 		baseURL: apiBaseLink,
-		timeout: 1000 * 30,
+		timeout: 1000 * 90,
+		headers: {
+			'User-Agent': 'Stend CLI/' + require('./package.json').version
+		},
 		validateStatus: (status) => {
 		  return status >= 200 && status < 500
 		}
