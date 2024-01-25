@@ -171,6 +171,43 @@ if(!process.env.STEND_SILENT_OUTPUT && !process.env.STEND_DISABLE_SPINNERS){ // 
 	}
 }
 
+// Fonction pour récupérer la clé de partage à partir d'un string
+async function getShareKey(string){
+	// Si on a rien, on retourne rien
+	if(!string) return { apiBaseLink: undefined, shareKey: undefined }
+
+	// Variables
+	var apiBaseLink
+	var shareKey
+	var finalUrl = string
+
+	// Si ça commence par https:// ou http://, on essaye de récupérer la clé de partage
+	if(string.startsWith('https://') || string.startsWith('http://')){
+		// Importer Axios
+		if(!axios) axios = require('axios')
+
+		// Faire une requête pour récupérer le lien de l'API
+		var pageContent = await axios.get(string)
+		apiBaseLink = pageContent.data.match(/ apibaseurl="https:\/\/(.*)"/)?.[1]
+		if(apiBaseLink) apiBaseLink = 'https://' + apiBaseLink.split('"')[0]
+		else apiBaseLink = undefined
+
+		// Définir l'URL de l'API si on l'a dans la page
+		if(apiBaseLink?.length) apiBaseLink = removeTrailingSlash(apiBaseLink)
+
+		// Obtenir l'URL finale
+		var finalUrl = pageContent.request.res.responseUrl
+		if(!finalUrl) finalUrl = string
+	}
+
+	// On définit les variables restantes
+	if(!apiBaseLink?.length) apiBaseLink = config?.get('apiBaseLink')
+	if(!shareKey?.length) shareKey = finalUrl.split('?')[1]?.split('&')[0] || finalUrl
+
+	// On retourne ce qu'il faut
+	return { apiBaseLink, shareKey }
+}
+
 // Afficher un TUI
 async function showTUI(){
 	// Si on a désactivé les prompts
@@ -255,17 +292,13 @@ async function showTransfertInfo(key){
 	if(!JSONdb) JSONdb = require('simple-json-db')
 	if(!config) config = new JSONdb(getConfigPath(true))
 
-	// Préparer l'URL de l'API
-	var apiBaseLink = config.get('apiBaseLink')
+	// On détermine les informations nécessaires
+	var { apiBaseLink, shareKey } = await getShareKey(key)
 	if(!apiBaseLink?.length){
 		console.error(chalk.red("Veuillez configurer Stend CLI en tapant " + chalk.blue("stend-config") + " dans votre terminal"))
 		process.exit(1)
 	}
-
-	// Si c'est une URL et non une clé, on tenter d'en déterminer la clé
-	if(key) key = key.trim()
-	if(!key?.match(/^[a-zA-Z0-9]+$/)) key = key?.split('d.html?')?.[1] || key
-	key = key?.trim().replace(/[^a-zA-Z0-9]/g, '')
+	key = shareKey
 
 	// Si la clé est vide, on quitte
 	if(!key?.length){
@@ -289,7 +322,7 @@ async function showTransfertInfo(key){
 	// Obtenir les informations du transfert
 	var info = await instance.get(`${apiBaseLink}/files/info?sharekey=${key}`).then(res => res.data).catch(err => { return { message: err } })
 	if(info.message || info.error || info.statusCode){
-		console.error(chalk.red((info.message || info.error || info.statusCode) + '.').replace('La clé de partage est invalide.', "La clé de partage est invalide ou le transfert a pu expirer."))
+		console.error(chalk.red((info.message || info.error || info.statusCode) + '.').replace('La clé de partage est invalide.', "La clé de partage est invalide ou le transfert a expiré."))
 		process.exit(1)
 	}
 
@@ -351,18 +384,14 @@ async function downloadFile(key, wherePath){
 
 	// Définir le chemin du fichier
 	wherePath = wherePath || process.env.STEND_DEFAULT_DOWNLOAD_PATH || path.join(process.cwd()) || path.join(homedir) || '.'
-
-	// Préparer l'URL de l'API
-	var apiBaseLink = config.get('apiBaseLink')
+	
+	// On détermine les informations nécessaires
+	var { apiBaseLink, shareKey } = await getShareKey(key)
 	if(!apiBaseLink?.length){
 		console.error(chalk.red("Veuillez configurer Stend CLI en tapant " + chalk.blue("stend-config") + " dans votre terminal"))
 		process.exit(1)
 	}
-
-	// Si c'est une URL et non une clé, on tenter d'en déterminer la clé
-	if(key) key = key.trim()
-	if(!key?.match(/^[a-zA-Z0-9]+$/)) key = key?.split('d.html?')?.[1] || key
-	key = key?.trim().replace(/[^a-zA-Z0-9]/g, '')
+	key = shareKey
 
 	// Si la clé est vide, on quitte
 	if(!key?.length){
@@ -379,7 +408,7 @@ async function downloadFile(key, wherePath){
 			'User-Agent': 'Stend CLI/' + require('./package.json').version
 		},
 		validateStatus: (status) => {
-		  return status >= 200 && status < 500
+			return status >= 200 && status < 500
 		}
 	})
 
@@ -601,7 +630,7 @@ async function upload(files){
 			'User-Agent': 'Stend CLI/' + require('./package.json').version
 		},
 		validateStatus: (status) => {
-		  return status >= 200 && status < 500
+			return status >= 200 && status < 500
 		}
 	})
 
@@ -988,4 +1017,10 @@ function formatDuration(seconds, complete=false){
 	if(m) result += `${m}${complete && m > 1 ? ' minutes' : complete ? ' minute' : 'm'} `
 	if(s) result += `${s}${complete && s > 1 ? ' secondes' : complete ? ' seconde' : 's'} `
 	return result.trim()
+}
+
+// Fonction pour enlever les multiples slash de fin d'une URL
+function removeTrailingSlash(str){
+	while(str.endsWith('/')) str = str.slice(0, -1)
+	return str
 }
