@@ -24,6 +24,12 @@ function trim(str){
 	return str.replace(/^\s+|\s+$/gm,'').trim()
 }
 
+// Fonction pour enlever les multiples slash de fin d'une URL
+function removeTrailingSlash(str){
+	while(str.endsWith('/')) str = str.slice(0, -1)
+	return str
+}
+
 // Modifier la variable
 const JSONdb = require('simple-json-db')
 const config = new JSONdb(getConfigPath(true))
@@ -105,6 +111,7 @@ async function showTUI(){
 	if(webUrl){
 		// Si ça commence pas par http, on ajoute
 		if(!webUrl.startsWith('http')) webUrl = 'https://' + webUrl
+		webUrl = removeTrailingSlash(webUrl)
 
 		// Faire une requête
 		var webUrlContent = await instance.get(webUrl).catch(() => null)
@@ -145,6 +152,7 @@ async function showTUI(){
 		])
 		apiUrl = apiProtocol + '://' + (apiUrl.split('://')[1] || apiUrl)
 	}
+	apiUrl = removeTrailingSlash(apiUrl)
 
 	// On vérifie que l'instance soit bien une instance Stend
 	var apiDomainContent = await instance.get(`${apiUrl}/instance`).catch(() => null)
