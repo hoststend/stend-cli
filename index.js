@@ -81,6 +81,13 @@ var homedir
 		upload(output)
 	}
 
+	// Vérifier si la sous commande follow-instructions est présente
+	if(defaultArgs.includes('f') || defaultArgs.includes('follow-instructions') || defaultArgs.includes('--follow-instructions') || defaultArgs.includes('-f')){
+		var index = defaultArgs.findIndex(arg => arg === '-f' || arg === '--follow-instructions' || arg === 'f' || arg === 'follow-instructions');
+		var value = defaultArgs[defaultArgs.findIndex(arg => arg === '-f' || arg === '--follow-instructions' || arg === 'f' || arg === 'follow-instructions') + 1]
+		followInstructions(value)
+	}
+
 	// Vérifier si la sous commande info est présente
 	if(defaultArgs.includes('i') || defaultArgs.includes('info') || defaultArgs.includes('--info') || defaultArgs.includes('-i')){
 		var index = defaultArgs.findIndex(arg => arg === '-i' || arg === '--info' || arg === 'i' || arg === 'info');
@@ -95,7 +102,7 @@ var homedir
 	}
 
 	// S'il y a aucune sous commande, afficher l'interface
-	if(!defaultArgs.includes('u') && !defaultArgs.includes('upload') && !defaultArgs.includes('--upload') && !defaultArgs.includes('-u') && !defaultArgs.includes('d') && !defaultArgs.includes('download') && !defaultArgs.includes('--download') && !defaultArgs.includes('-d') && !defaultArgs.includes('i') && !defaultArgs.includes('info') && !defaultArgs.includes('--info') && !defaultArgs.includes('-i')) showTUI()
+	if(!defaultArgs.includes('u') && !defaultArgs.includes('upload') && !defaultArgs.includes('--upload') && !defaultArgs.includes('-u') && !defaultArgs.includes('d') && !defaultArgs.includes('download') && !defaultArgs.includes('--download') && !defaultArgs.includes('-d') && !defaultArgs.includes('i') && !defaultArgs.includes('info') && !defaultArgs.includes('--info') && !defaultArgs.includes('-i') && !defaultArgs.includes('f') && !defaultArgs.includes('follow-instructions') && !defaultArgs.includes('--follow-instructions') && !defaultArgs.includes('-f')) showTUI()
 
 // Afficher la page d'aide
 function showHelp(){
@@ -105,24 +112,25 @@ function showHelp(){
    ${chalk.dim('(ou alors "std")')}
 
  Sous commandes
-   help       h              Affiche cette page d'aide
-   version    v              Indique la version actuellement utilisée par le CLI
-   download   d              Télécharge un ou des fichiers depuis Stend sur votre appareil
-   upload     u              Envoie un ou des fichiers de votre appareil sur Stend
-   info       i              Affiche les détails d'un transfert à partir de sa clé de partage
-   history                   Affiche les précédents transferts effectués
-   configpath       -cp      Affiche le chemin du fichier de configuration
+   help                 h     Affiche cette page d'aide
+   version              v     Indique la version actuellement utilisée par le CLI
+   download             d     Télécharge un ou des fichiers depuis Stend sur votre appareil
+   upload               u     Envoie un ou des fichiers de votre appareil sur Stend
+   info                 i     Affiche les détails d'un transfert à partir de sa clé de partage
+   history                    Affiche les précédents transferts effectués
+   follow-instructions  f     Indique au CLI de suivre un fichier d'instructions pour un upload
+   configpath           cp    Affiche le chemin du fichier de configuration
 
  Options
-   --silent  -s              Masque certains messages peu utiles dans le terminal
-   --dest    -f              Modifier le dossier de destination (download)
-   --expire  -e              Choisit une durée avant expiration personnalisée en minutes (upload)
-   --disable-notifications   Désactive les notifications sur Windows et macOS
-   --disable-spinners        Empêche l'affichage d'animation de chargement dans le terminal
+   --silent  -s               Masque certains messages peu utiles dans le terminal
+   --dest    -f               Modifier le dossier de destination (download)
+   --expire  -e               Choisit une durée avant expiration personnalisée en minutes (upload)
+   --disable-notifications    Désactive les notifications sur Windows et macOS
+   --disable-spinners         Empêche l'affichage d'animation de chargement dans le terminal
 
  Télécharger un transfert (peut contenir plusieurs fichiers)
    $ stend download https://stend-web.example.com/d.html?abcdef
-   $ stend download abcdef
+   $ stend download abcdef # téléchargera via l'API par défaut enregistré dans la config
 
  Envoyer un fichier
    $ stend upload stickman.png
@@ -173,16 +181,13 @@ if(!process.env.STEND_SILENT_OUTPUT && !process.env.STEND_DISABLE_SPINNERS){ // 
 
 // Fonction pour récupérer la clé de partage à partir d'un string
 async function getShareKey(string){
-	// Si on a rien, on retourne rien
-	if(!string) return { apiBaseLink: undefined, shareKey: undefined }
-
 	// Variables
 	var apiBaseLink
 	var shareKey
 	var finalUrl = string
 
 	// Si ça commence par https:// ou http://, on essaye de récupérer la clé de partage
-	if(string.startsWith('https://') || string.startsWith('http://')){
+	if(string?.startsWith('https://') || string?.startsWith('http://')){
 		// Importer Axios
 		if(!axios) axios = require('axios')
 
@@ -202,7 +207,7 @@ async function getShareKey(string){
 
 	// On définit les variables restantes
 	if(!apiBaseLink?.length) apiBaseLink = config?.get('apiBaseLink')
-	if(!shareKey?.length) shareKey = finalUrl.split('?')[1]?.split('&')[0] || finalUrl
+	if(!shareKey?.length) shareKey = finalUrl?.split('?')?.[1]?.split('&')?.[0] || finalUrl
 
 	// On retourne ce qu'il faut
 	return { apiBaseLink, shareKey }
@@ -563,7 +568,7 @@ async function downloadFile(key, wherePath){
 }
 
 // Fonction pour uploader
-async function upload(files){
+async function upload(files, webBaseLink, apiBaseLink, apiPassword){
 	// Importer les modules
 	if(!fs) fs = require('fs')
 	if(!path) path = require('path')
@@ -613,9 +618,9 @@ async function upload(files){
 	if(!config) config = new JSONdb(getConfigPath(true))
 
 	// Préparer l'URL de l'API et du client web si disponible
-	var webBaseLink = config.get('webBaseLink')
-	var apiBaseLink = config.get('apiBaseLink')
-	var apiPassword = config.get('apiPassword')
+	if(!webBaseLink) webBaseLink = config.get('webBaseLink')
+	if(!apiBaseLink) apiBaseLink = config.get('apiBaseLink')
+	if(!apiPassword) apiPassword = config.get('apiPassword')
 	if(!apiBaseLink?.length){
 		console.error(chalk.red("Veuillez configurer Stend CLI en tapant " + chalk.blue("stend-config") + " dans votre terminal"))
 		process.exit(1)
@@ -680,6 +685,7 @@ async function upload(files){
 	// Si on l'a pas, ou qu'elle est invalide et qu'on ne peut pas afficher de prompt
 	else if(!expire || isNaN(expire) || expire < 1 || parseInt(instanceInfo.fileMaxAge) < expire){
 		console.error(chalk.red(`Veuillez entrer une durée avant expiration valide et inférieure à ${formatDuration(instanceInfo.fileMaxAge, true)}.`))
+		return process.exit(1)
 	}
 
 	// Importer FormData
@@ -813,7 +819,95 @@ async function upload(files){
 			clipboardy.writeSync(`${webBaseLink ? webBaseLink + '/d.html?' : ''}${mergeTransferts?.shareKey || sendedFiles[0]}`)
 		} catch (err) {} // on ignore les erreurs, comme "Couldn't find the `xsel` binary and fallback didn't work." sur certaines distro Linux
 	}
+}
 
+// Fonction pour comprendre un fichier d'instructions d'upload
+function followInstructions(filePath){
+	// Importer des modules
+	if(!fs) fs = require('fs')
+	if(!path) path = require('path')
+
+	/*
+	WEB_BASE_URL https://stend.example.com
+	API_BASE_URL https://stend-api.example.com
+	API_PASSWORD aaaaaaaaa
+
+	SILENT_OUTPUT true
+	EXPIRE_AFTER 5 // durée en minutes
+	DISABLE_NOTIFICATIONS true
+	DISABLE_SPINNER true
+	DISABLE_PROMPT false
+	DISABLE_AUTO_WRITE_CLIPBOARD true
+	DISABLE_HISTORY false
+
+	--- FILES
+	unexemple.txt
+	unexemple2.txt
+	*/
+
+	// On lit le fichier
+	var str
+	try {
+		str = fs.readFileSync(path.join(filePath), 'utf8')
+	} catch (err) {
+		console.log(err)
+		console.error("Impossible de suivre ce fichier d'instructions. Le fichier n'a pas pu être lu.")
+		process.exit(1)
+	}
+
+	// On définit l'objet de base
+	var obj = {}
+
+	// On sépare puis passe sur chaque ligne
+	var lines = str.split('\n').map(l => l.trim()).filter(l => l.length > 0)
+	var isGettingFiles = false
+	if(lines?.length) lines.forEach((line, i) => {
+		// On détermine la clé et la valeur
+		var key = line.split(' ')?.[0]?.toLowerCase()?.trim()
+		var value = line.split(' ')?.[1]?.trim()
+
+		// Si on est en train de récupérer les fichiers, on ajoute la ligne comme un fichier dans la liste
+		if(isGettingFiles){
+			if(!obj.files) obj.files = []
+			obj.files.push(line)
+		}
+
+		// Sinon, si on comprend que les prochaines lignes sont des fichiers
+		else if(key == '---' && value == 'FILES') isGettingFiles = true
+
+		// Sinon, si on comprend la ligne comme une variable
+		else if(key?.length && value?.length) obj[key] = value == 'true' ? true : value == 'false' ? false : value
+	})
+
+	// S'il manque certaines options, on arrête tout en l'indiquant
+	if(!obj?.api_base_url?.length) return console.error("Impossible de suivre ce fichier d'instructions. Chargement des paramètres impossibles - API_BASE_URL manquant.")
+	if(!obj?.expire_after?.length) return console.error("Impossible de suivre ce fichier d'instructions. Chargement des paramètres impossibles - EXPIRE_AFTER manquant.")
+	if(!obj?.files?.length) return console.error("Impossible de suivre ce fichier d'instructions. Chargement des paramètres impossibles - FILES manquant.")
+
+	// On applique certaines variables d'environnement en fonction des options
+	if(obj.silent_output == true) process.env.STEND_SILENT_OUTPUT = true
+	if(obj.disable_notifications == true) process.env.STEND_DISABLE_NOTIFICATIONS = true
+	if(obj.disable_spinner == true){
+		process.env.STEND_DISABLE_SPINNER = true
+		chalk = {
+			red: (text) => text,
+			green: (text) => text,
+			blue: (text) => text,
+			cyan: (text) => text,
+			gray: (text) => text,
+			yellow: (text) => text,
+			dim: (text) => text,
+			reset: (text) => text,
+			bold: (text) => text,
+		}
+	}
+	if(obj.disable_prompt == true) process.env.STEND_DISABLE_PROMPT = true
+	if(obj.disable_auto_write_clipboard == true) process.env.STEND_DISABLE_AUTO_WRITE_CLIPBOARD = true
+	if(obj.disable_history == true) process.env.STEND_DISABLE_HISTORY = true
+	if(obj.expire_after) process.env.STEND_DEFAULT_EXPIRE = obj.expire_after
+
+	// On lance l'upload
+	return upload(obj.files, obj.web_base_url, obj.api_base_url, obj.api_password)
 }
 
 // Fonction pour afficher l'historique
