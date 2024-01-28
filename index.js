@@ -845,6 +845,12 @@ function followInstructions(filePath){
 	unexemple2.txt
 	*/
 
+	// Si on a pas le chemin du fichier
+	if(!filePath?.length){
+		console.error("Veuillez entrer le chemin d'un fichier d'instructions valide.")
+		process.exit(1)
+	}
+
 	// On lit le fichier
 	var str
 	try {
