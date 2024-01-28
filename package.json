@@ -35,5 +35,8 @@
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/johan-perso/stend-cli.git"
+	},
+	"devDependencies": {
+		"eslint": "^8.56.0"
 	}
 }
