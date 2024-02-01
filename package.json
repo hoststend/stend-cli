@@ -25,11 +25,11 @@
 		"cli-table3": "^0.6.3",
 		"clipboardy": "^2.3.0",
 		"extract-zip": "^2.0.1",
-		"form-data": "^4.0.0",
 		"inquirer": "^8.2.0",
 		"node-notifier": "10.0.0",
 		"nodejs-file-downloader": "^4.12.1",
 		"simple-json-db": "^2.0.0",
+		"superagent": "^8.1.2",
 		"update-notifier": "5.1.0"
 	},
 	"repository": {

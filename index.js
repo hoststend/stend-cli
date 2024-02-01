@@ -8,13 +8,13 @@ var path
 var cliProgress
 var download
 var notifier
-var FormData
 var Table
 var clipboardy
 var extractor
 var JSONdb
 var config
 var axios
+var superagent
 var instance
 /* =========== */
 var platform
@@ -500,7 +500,7 @@ async function downloadFile(key, wherePath){
 		}
 
 		// Obtenir la barre de progression
-		if(!process.env.STEND_SILENT_OUTPUT) var bar = createProgressBar()
+		if(!process.env.STEND_DISABLE_SPINNERS) var bar = createProgressBar()
 		if(bar) bar.start(100, 0, { filename: fileName, firstArg: "0 B", size: formatBytes(fileSize) })
 
 		// Créer le téléchargement
@@ -688,8 +688,8 @@ async function upload(files, webBaseLink, apiBaseLink, apiPassword){
 		return process.exit(1)
 	}
 
-	// Importer FormData
-	if(!FormData) FormData = require("form-data")
+	// Importer SuperAgent --> fonctionne plus rapidement que Axios, et plus efficacement
+	if(!superagent) superagent = require("superagent")
 
 	// Pour chaque fichier à envoyer
 	var sendedFiles = []
@@ -702,7 +702,7 @@ async function upload(files, webBaseLink, apiBaseLink, apiPassword){
 		}
 
 		// Obtenir la barre de progression
-		if(!process.env.STEND_SILENT_OUTPUT) var bar = createProgressBar()
+		if(!process.env.STEND_DISABLE_SPINNERS) var bar = createProgressBar()
 		if(bar) bar.start(100, 0, { filename: file.name, firstArg: "0 B", size: formatBytes(file.size) })
 
 		// Créer le transfert
@@ -713,9 +713,9 @@ async function upload(files, webBaseLink, apiBaseLink, apiPassword){
 		}, { headers: { "Authorization": apiPassword || "" } }).then(res => res.data).catch(err => { return { message: err } })
 
 		// Si on a pas pu créer le transfert
-		if(createTransfert.message || createTransfert.error || createTransfert.statusCode){
+		if(!createTransfert?.chunks || createTransfert.message || createTransfert.error || createTransfert.statusCode){
 			if(bar) bar.stop()
-			console.error(chalk.red(`${createTransfert.message || createTransfert.error || createTransfert.statusCode}.`))
+			console.error(chalk.red(`${createTransfert.message || createTransfert.error || createTransfert.statusCode || createTransfert}.`))
 			process.exit(1)
 		}
 
@@ -725,52 +725,59 @@ async function upload(files, webBaseLink, apiBaseLink, apiPassword){
 			var alreadySentSize = 0
 
 			for(let i = 0; i < createTransfert.chunks.length; i++){
-				// Récupérer les infos sur le chunk
+				// Récupérer les infos sur le chunk et contenir le stream du fichier
 				var chunkInfo = createTransfert.chunks[i]
-
-				// Créer un FormData
-				let formData = new FormData()
+				var fileStream
 
 				// Si on a qu'un seul chunk à envoyer, on ajoute le fichier en entier
-				if(createTransfert.chunks.length == 1) formData.append("file", fs.createReadStream(file.path))
+				if(createTransfert.chunks.length == 1) fileStream = fs.createReadStream(file.path)
 
 				// Sinon, on obtient un chunk et on l'ajoute
 				else {
-					// On obtient le chunk
-					var start = chunkInfo.pos * createTransfert.chunkEvery
-					var end = Math.min(start + createTransfert.chunkEvery, file.size)
-					let chunkFile = fs.createReadStream(file.path, { start: start, end: end })
+					// On détermine entre quelles positions on doit tronquer le fichier original
+					var start = alreadySentSize
+					var end = alreadySentSize + createTransfert.chunks[i].size - 1
+					var chunkFile = fs.createReadStream(file.path, { start: start, end: end })
+					chunkFile.on("error", err => {
+						console.log(chalk.red(`Une erreur est survenue lors du chunkage du chunk (jsp cmt décrire c'est pas censé se produire) : ${err}`))
+						process.exit(1)
+					})
 
-					// On ajoute le fichier au FormData
-					formData.append("file", chunkFile)
+					// On ajoute le fichier dans la variable
+					fileStream = chunkFile
 				}
 
-				// On envoie le chunk avec Axios (pour suivre la progression)
-				var sendChunk = await instance.put(`${apiBaseLink}${chunkInfo.uploadPath}`, formData, {
-					onUploadProgress: progressEvent => {
-						let percentCompleted = Math.round((alreadySentSize + progressEvent.loaded) * 100 / file.size)
-						if(bar) bar.update(percentCompleted, { firstArg: formatBytes(alreadySentSize + progressEvent.loaded) })
-						else console.log(JSON.stringify({
+				// On envoie le chunk
+				var sendChunk = await superagent.put(`${apiBaseLink}${chunkInfo.uploadPath}`).set("Authorization", apiPassword || "").type("form").field("file", fileStream).on("progress", progressEvent => {
+					if(progressEvent?.direction != "upload") return
+
+					let percentCompleted = Math.round((alreadySentSize + progressEvent.loaded) * 100 / file.size)
+					if(bar) bar.update(percentCompleted, { firstArg: formatBytes(alreadySentSize + progressEvent.loaded) })
+					else {
+						var remaining = file.size - alreadySentSize - progressEvent.loaded
+						if(remaining < 0) remaining = 0
+
+						console.log(JSON.stringify({
 							type: "uploadProgress",
 							uploadedClean: formatBytes(alreadySentSize + progressEvent.loaded),
 							uploaded: alreadySentSize + progressEvent.loaded,
-							remainingClean: formatBytes(file.size - alreadySentSize - progressEvent.loaded),
-							remaining: file.size - alreadySentSize - progressEvent.loaded,
+							remainingClean: formatBytes(remaining),
+							remaining: remaining,
 							percent: percentCompleted,
 						}))
 					}
-				}).then(res => res.data).catch(err => { return { error: true, message: err.error || err.message || err } })
+				}).then(res => res.body).catch(err => { return { error: true, message: err.error || err.message || err } })
 				alreadySentSize += chunkInfo.size
 
-				// Tenter de convertir la réponse en JSON
-				try { sendChunk = JSON.parse(sendChunk) } catch(e){}
+				// Tenter de convertir la réponse en JSON si ça ne l'est pas déjà (ce qui est pas normal ptdrr)
+				if(typeof sendChunk != "object") try { sendChunk = JSON.parse(sendChunk) } catch(e){}
 
 				// Si on a une erreur
-				if(sendChunk.error || sendChunk.statusCode){
+				if(sendChunk?.error || sendChunk?.statusCode){
 					if(bar) bar.stop()
 					console.log(chalk.red(`Une erreur est survenue lors de l'envoi d'un chunk : ${sendChunk.message}` || sendChunk.error || sendChunk.statusCode || sendChunk))
 					return process.exit(1)
-				} else if(sendChunk){
+				} else if(sendChunk?.shareKey){ // si on a une clé de partage = on a vrm fini l'upload
 					// On ajoute le fichier à l'historique
 					addToHistory(file.name, `${webBaseLink ? `${webBaseLink}/d.html?` : ""}${sendChunk?.shareKey}`, sendChunk?.shareKey)
 
