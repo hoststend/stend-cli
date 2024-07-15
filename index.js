@@ -320,7 +320,7 @@ async function showTransfertInfo(key){
 			"User-Agent": `Stend CLI/${require("./package.json").version}`
 		},
 		validateStatus: (status) => {
-			return status >= 200 && status < 500
+			return true
 		}
 	})
 
@@ -413,7 +413,7 @@ async function downloadFile(key, wherePath){
 			"User-Agent": `Stend CLI/${require("./package.json").version}`
 		},
 		validateStatus: (status) => {
-			return status >= 200 && status < 500
+			return true
 		}
 	})
 
@@ -635,7 +635,7 @@ async function upload(files, webBaseLink, apiBaseLink, apiPassword){
 			"User-Agent": `Stend CLI/${require("./package.json").version}`
 		},
 		validateStatus: (status) => {
-			return status >= 200 && status < 500
+			return true
 		}
 	})
 
