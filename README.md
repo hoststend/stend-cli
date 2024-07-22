@@ -4,7 +4,7 @@ Stend est un projet visant à être l'une des meilleures solutions pour configur
 
 Ce repo GitHub contient le code source du client pour terminal de Stend, permettant de télécharger ou d'envoyer des fichiers sur une instance de Stend.
 
-Pour plus d'informations sur ce client, vous pouvez lire [la page de la documentation dédiée](https://stend-docs.johanstick.fr/cli-docs/install).
+Pour plus d'informations sur ce client, vous pouvez lire [la page de la documentation dédiée](https://stend.johanstick.fr/cli-docs/intro).
 
 https://github.com/johan-perso/stend-cli/assets/41506568/1b2a24ce-35fb-4b8a-b8e2-1a999e754837
 
@@ -35,4 +35,4 @@ $ (sudo) npm install --global stend-cli
 
 ## Licence
 
-MIT © [Johan](https://johanstick.fr)
+MIT © [Johan](https://johanstick.fr). Soutenez ce projet via [Ko-Fi](https://ko-fi.com/johan_stickman) ou [PayPal](https://paypal.me/moipastoii) si vous souhaitez m'aider 💙
