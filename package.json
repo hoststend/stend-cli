@@ -34,9 +34,9 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/johan-perso/stend-cli.git"
+		"url": "https://github.com/hoststend/stend-cli.git"
 	},
-	"homepage": "https://stend-docs.johanstick.fr/cli-docs/install",
+	"homepage": "https://stend.johanstick.fr/cli-docs/intro",
 	"devDependencies": {
 		"eslint": "^8.56.0"
 	}
