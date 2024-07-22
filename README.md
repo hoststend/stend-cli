@@ -29,7 +29,7 @@ $ (sudo) npm install --global stend-cli
 
 ## En lien
 
-* [Stend API](https://github.com/johan-perso/stend-api) / [Stend WEB](https://github.com/johan-perso/stend-web) - pour configurer une instance de Stend
+* [Stend API](https://github.com/hoststend/stend-api) / [Stend WEB](https://github.com/hoststend/stend-web) - pour configurer une instance de Stend
 * [SendOverNetwork](https://github.com/johan-perso/sendovernetwork) - permet de s'échanger des fichiers via terminal sur le même réseau
 
 
