@@ -618,7 +618,7 @@ async function upload(files, webBaseLink, apiBaseLink, apiPassword){
 	if(!config) config = new JSONdb(getConfigPath(true))
 
 	// Préparer l'URL de l'API et du client web si disponible
-	if(!webBaseLink) webBaseLink = config.get("webBaseLink")
+	if(!apiBaseLink && !webBaseLink) webBaseLink = config.get("webBaseLink") // on récupère depuis la config si on a pas DÉJÀ reçu l'URL de l'API
 	if(!apiBaseLink) apiBaseLink = config.get("apiBaseLink")
 	if(!apiPassword) apiPassword = config.get("apiPassword")
 	if(!apiBaseLink?.length){
